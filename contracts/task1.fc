@@ -18,6 +18,7 @@
         throw_if(121, lock <= 0);
         throw_if(122, time < now());
         throw_if(123, now() + lock < time);
+        accept_message();
 
         set_data(
             begin_cell()
@@ -30,7 +31,10 @@
     }
     elseif(op == 0xbb4be234) {
         var qid = in_msg~load_uint(64);
+
         throw_if(124, now() < time);
+        accept_message();
+        
 
         cell msg = begin_cell()
             .store_uint(0x18, 6)
