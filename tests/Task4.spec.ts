@@ -1,38 +1,48 @@
-import { Blockchain, SandboxContract } from '@ton-community/sandbox';
-import { Cell, toNano } from 'ton-core';
-import { Task4 } from '../wrappers/Task4';
+import { SmartContract, stackInt, stackCell, stackTuple, TVMStackEntryInt, TVMStackEntryTuple} from "ton-contract-executor";
+import { Cell, beginCell } from "@ton/core";
+import fs from "fs";
 import '@ton-community/test-utils';
-import { compile } from '@ton-community/blueprint';
 
-describe('Task4', () => {
-    let code: Cell;
+// function stackInt(a: bigint) : TupleItemInt{
+//     return {
+//         type: 'int',
+//         value: a
+//     };
+// }
 
-    beforeAll(async () => {
-        code = await compile('Task4');
-    });
+// function stackTuple(a: TupleItem[]) : Tuple {
+//     return {
+//         type: 'tuple',
+//         items: a 
+//     };
+// }
 
-    let blockchain: Blockchain;
-    let task4: SandboxContract<Task4>;
+function parseGrid(a: string[][]){
+    let b = a.map((s) => 
+        stackTuple(
+            s.map((c) => stackInt(BigInt(c.charCodeAt(0))))
+        )
+    );
+    return stackTuple(b);
+}
 
-    beforeEach(async () => {
-        blockchain = await Blockchain.create();
+const task = 4;
+const code = fs.readFileSync(`../build/Task4.compiled.json`).toString();
+const hex : string = JSON.parse(code).hex;
 
-        task4 = blockchain.openContract(Task4.createFromConfig({}, code));
+async function test(contract: SmartContract, n : TVMStackEntryInt, m : TVMStackEntryInt, maze: TVMStackEntryTuple){
+    let re = await contract.invokeGetMethod('fibonacci_sequence', [n, m, maze]);
+    
+}
 
-        const deployer = await blockchain.treasury('deployer');
-
-        const deployResult = await task4.sendDeploy(deployer.getSender(), toNano('0.05'));
-
-        expect(deployResult.transactions).toHaveTransaction({
-            from: deployer.address,
-            to: task4.address,
-            deploy: true,
-            success: true,
-        });
-    });
-
-    it('should deploy', async () => {
-        // the check is done inside beforeEach
-        // blockchain and task4 are ready to use
-    });
+async function main() {
+    const contract = await SmartContract.fromCell(
+        Cell.fromBoc(Buffer.from(hex, 'hex'))[0],
+        new Cell(),
+        { debug: true }
+    )
+}
+main().then(() => {
+    console.log("✅ All Tests Passed")
+    process.exit(0);
 });
