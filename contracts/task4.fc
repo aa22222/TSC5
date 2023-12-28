@@ -38,7 +38,7 @@ int equal(tuple a, tuple b){
     ;; Find best state, (least tuple)
     while (~ l.null?()) {
         (var x, l) = uncons(l);
-        if(less(x, re)){
+        if(less(re, x)){
             re = x;
         }
     }
@@ -102,19 +102,17 @@ int in(tuple vis, int id){
     pq = cons(s, pq);
     while(~ pq.null?()){
         var x = pq~pop();
-
         int i = x.at(0);
         int j = x.at(1);
-       
         if(~ in(vis, i * m + j)){ ;; check if (i, j) is visited
             vis = cons(i * m + j, vis); ;; mark as visited
-
+       
             ;; Load data for current state
             int bX = x.at(2);
             int sup = x.at(3);
             int len = x.at(4);
             tuple path = x.at(5);
-
+            
             ;; If End is reached, construct mazePath.
             if((i == ei) & (j == ej)){
                 tuple mazePath = empty_tuple();
@@ -152,7 +150,8 @@ int in(tuple vis, int id){
                 repeat(3){
                     int i' = i + di;
                     int j' = j + dj;
-                    if((i' >= 0) & (i' < n) & (j >= 0) & (j' < m)){
+                   
+                    if((i' >= 0) & (i' < n) & (j' >= 0) & (j' < m)){
                         int bX' = bX; int sup' = sup; int len' = len + 1;
                         
                         ;; isX?
