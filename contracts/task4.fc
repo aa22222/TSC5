@@ -14,7 +14,7 @@ const int val! = 33;
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
     ;; Get Start and End
     
-    ;; (X, ?) = 100 * X + ?
+    ;; (X, ?) = 1000 * X + ?
     tuple dp = empty_tuple();
     int ei = 0; int ej = 0;
     int i = 0; int j = 0;
@@ -44,7 +44,7 @@ const int val! = 33;
     dp~tpush(dpd);
 
     int d = 0; int i = 0; int j = 0;
-    repeat(n + m - 1){
+    repeat(n * m){
         tuple dpd = empty_tuple();
         repeat(n){
             tuple dpi = empty_tuple();
@@ -65,7 +65,7 @@ const int val! = 33;
                     di += 1;
                 }
                 if(maze.at(i).at(j) == X) {
-                    mn += 100;
+                    mn += 1000;
                 }
                 if(maze.at(i).at(j) == Q) {
                     mn += 1;
@@ -88,7 +88,7 @@ const int val! = 33;
     int d = 0;
     int mn = MAXINT;
     int mnd = -1;
-    repeat(n + m){
+    repeat(n * m){
         int g = dp.at(d).at(ei).at(ej);
         if(g < mn){
             mnd = d;
@@ -134,5 +134,5 @@ const int val! = 33;
         d -= 1;
     }
     
-    return (mn / 100, mn % 100, mnd, maze);
+    return (mn / 1000, mn % 1000, mnd, maze);
 }
