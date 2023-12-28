@@ -97,6 +97,8 @@ const int val! = 33;
         d += 1;
     }
 
+
+    int i = ei; int j = ej;
     int curx = mn;
     int d = mnd - 1;
     repeat(mnd - 1){
@@ -126,7 +128,9 @@ const int val! = 33;
         tuple temp = maze.at(i);
         temp~set(val!, j);
         maze~set(temp, i);
-
+        ;; ~dump(ni);
+        ;; ~dump(nj);
+        ;; ~dump(maze);
         d -= 1;
     }
     
