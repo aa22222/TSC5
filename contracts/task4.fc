@@ -1,5 +1,170 @@
 #include "imports/stdlib.fc";
 
+tuple state(int a, int b, int c, int d, int e, tuple g) asm "6 TUPLE";
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
 
+}
+
+;; (i, j, brokenX, super, length)
+int less(tuple a, tuple b){
+    if(a.at(2) != b.at(2)) {
+        return a.at(2) > b.at(2);
+    }
+    if(a.at(3) != b.at(3)){
+        return a.at(3) > b.at(3);
+    }
+    return a.at(4) > b.at(4);
+}
+
+int equal(tuple a, tuple b){
+    return (a.at(0) == b.at(0)) & 
+            (a.at(1) == b.at(1)) & 
+            (a.at(2) == b.at(2)) & 
+            (a.at(3) == b.at(3)) & 
+            (a.at(4) == b.at(4));
+}
+
+const int MAXINT = 1000000000;
+
+(tuple, (tuple)) pop(tuple l){
+    tuple re = state(MAXINT, MAXINT, MAXINT, MAXINT, MAXINT, null());
+    tuple og = l;
+
+    while (~ l.null?()) {
+        (var x, l) = uncons(l);
+        if(less(x, re)){
+            re = x;
+        }
+    }
+
+    l = og;
+
+    tuple new = null();
+    while (~ l.null?()) {
+        (var x, l) = uncons(l);
+        if(~ equal(x, re)){
+            new = cons(x, new);
+        }
+    }
+
+    return (new, (re));
+}
+
+(tuple) push(tuple pq, tuple x){
+    return cons(x, pq);
+}
+
+int in(tuple vis, int id){
+    while (~ vis.null?()) {
+        (var x, vis) = uncons(vis);
+        if(x == id) {
+            return true;
+        }
+    }
+    return false;
+}
+
+const int X = 88;
+const int S = 83;
+const int E = 69;
+const int Q = 63;
+const int val! = 33;
+
+;; (i, j, brokenX, super, length)
+(int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
+    var pq = null();
+    var vis = null();
+
+    int si = 0; int sj = 0;
+    int ei = 0; int ej = 0;
+    
+    int i = 0; int j = 0;
+    repeat(n){
+        tuple cur = maze.at(i);
+        repeat(m){
+            var c = cur.at(j);
+            if(c == S){
+                si = i;
+                sj = j;
+            }
+            if(c == E){
+                ei = i;
+                ej = j;
+            }
+            j += 1;
+        }
+        i += 1;
+        j = 0;
+    }
+
+    tuple s = state(si, sj, 0, 0, 0, null());
+    pq = cons(s, pq);
+    while(~ pq.null?()){
+        var x = pq~pop();
+
+        int i = x.at(0);
+        int j = x.at(1);
+        if(~ in(vis, i * m + j)){
+            vis = cons(i * m + j, vis);
+
+            int bX = x.at(2);
+            int sup = x.at(3);
+            int len = x.at(4);
+
+            tuple path = x.at(5);
+
+            if((i == ei) & (j == ej)){
+                tuple mazePath = empty_tuple();
+                int ii = 0;
+                int jj = 0;
+                repeat(n){
+                    tuple row = empty_tuple();
+                    repeat(m){
+                        if((ii == si) & (jj == sj)) {
+                            row~tpush(maze.at(ii).at(jj));
+                        }
+                        elseif(in(path, ii * m + jj)) {
+                            row~tpush(val!);
+                        }
+                        else {
+                            row~tpush(maze.at(ii).at(jj));
+                        }
+                        jj += 1;
+                    }
+                    ii += 1;
+                    jj = 0;
+                    mazePath~tpush(row);
+                }
+                return (bX, sup, len, mazePath);
+            }
+
+            int di = -1; int dj = -1;
+            repeat(3){
+                repeat(3){
+                    int i' = i + di;
+                    int j' = j + dj;
+                    if((i' >= 0) & (i' < n) & (j >= 0) & (j' < m)){
+                        int bX' = bX; int sup' = sup; int len' = len + 1;
+                        
+                        ;; isX?
+                        if(maze.at(i').at(j') == X){
+                            bX' += 1;
+                        } 
+
+                        ;; isSup?
+                        if(maze.at(i').at(j') == Q){
+                            sup' += 1;
+                        } 
+
+                        tuple s = state(i', j', bX', sup', len', cons(i * m + j, path));
+                        pq = cons(s, pq);
+                    }
+                    dj += 1;
+                }
+                dj = -1;
+                di += 1;
+            }
+        }
+    }
+    return (-1, -1, -1, null());
 }
