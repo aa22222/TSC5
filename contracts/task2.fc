@@ -12,7 +12,7 @@ builder store_addr(builder b, int address) inline {
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
     var cs = in_msg_cell.begin_parse();
     var flags = cs~load_uint(4); 
-    if (flags & 1) {
+    if ((flags & 1) | (msg.slice_bits() < 32)) {
         return ();
     }
     var sender = cs~load_msg_addr();
