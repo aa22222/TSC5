@@ -92,37 +92,37 @@ builder store_addr(builder b, int address) inline {
             (user, sliceS, f) = users.udict_get_next?(256, user);
         }
     }
-    if(op == 0x7362d09c){
-        accept_message();
+    ;; if(op == 0x7362d09c){
+    ;;     accept_message();
 
-        int amount = msg~load_coins();
+    ;;     int amount = msg~load_coins();
 
-        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
-        throw_unless(122, f);
+    ;;     (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
+    ;;     throw_unless(122, f);
 
-        while(f){
-            int share = sliceS~load_uint(32);
-            cell msg = begin_cell()
-                .store_uint(0x18, 6)
-                .store_slice(sender)
-                .store_coins(20000000)
-                .store_uint(0, 107)
+    ;;     while(f){
+    ;;         int share = sliceS~load_uint(32);
+    ;;         cell msg = begin_cell()
+    ;;             .store_uint(0x18, 6)
+    ;;             .store_slice(sender)
+    ;;             .store_coins(20000000)
+    ;;             .store_uint(0, 107)
 
-                ;; Transfer body
-                .store_uint(qid, 64)
-                .store_coins(share * amount / total_share)
-                .store_addr(user)
-                .store_addr(user)
-                .store_uint(0, 1) ;; no custom payload
-                .store_coins(1)
-                .store_uint(0, 1) ;; no forward payload
+    ;;             ;; Transfer body
+    ;;             .store_uint(qid, 64)
+    ;;             .store_coins(share * amount / total_share)
+    ;;             .store_addr(user)
+    ;;             .store_addr(user)
+    ;;             .store_uint(0, 1) ;; no custom payload
+    ;;             .store_coins(1)
+    ;;             .store_uint(0, 1) ;; no forward payload
 
-                .end_cell();
-            send_raw_message(msg, 0);
+    ;;             .end_cell();
+    ;;         send_raw_message(msg, 0);
             
-            (user, sliceS, f) = users.udict_get_next?(256, user);
-        }
-    }
+    ;;         (user, sliceS, f) = users.udict_get_next?(256, user);
+    ;;     }
+    ;; }
 }
 
 cell get_users() method_id {
