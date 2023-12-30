@@ -10,50 +10,35 @@
     return (x / 1000000000000, x / 1000000000 % 1000, x / 1000000 % 1000, x / 1000 % 1000, x % 1000);
 }
 
-(tuple) set(tuple t, int x, int i) asm "SETINDEXVAR";
-(int) tlen(tuple t) asm "TLEN";
-(tuple) set2(tuple t, int i, int j, int x) inline {
-    return t.set(t.at(i).set(x, j), i);
+forall X -> (tuple) set(tuple t, X x, int i) asm "SETINDEXVAR";
+forall X -> (tuple, ()) set2(tuple t, int i, int j, X x) inline {
+    return (t.set(t.at(i).set(x, j), i), ());
 }
-const int MAXINT = 99999999999999999999999999999999999;
+(tuple, (tuple)) tpop(tuple t) asm "TPOP";
+int tlen(tuple t) asm "TLEN";
+
+
+const int MAXINT = 9223372036854776000;
 const int X = 88;
 const int S = 83;
 const int E = 69;
 const int Q = 63;
 const int val! = 33;
 
-(tuple, (tuple)) pop(tuple l){
-    tuple re = double(MAXINT, null())
-    tuple og = l;
+(cell, (int)) pop(cell pq) inline {
+    (int x, _, _) = pq~udict::delete_get_min(64);
+    return (pq, (x));
+}
 
-    ;; Find best state, (least tuple)
-    while (~ l.null?()) {
-        (var x, l) = uncons(l);
-        if(re.first() < x.first()){
-            re = x;
-        }
-    }
-
-    l = og;
-
-    ;; Generate new list with best state removed
-    tuple new = null();
-    while (~ l.null?()) {
-        (var x, l) = uncons(l);
-        if(x.first() != re.first()){
-            new = cons(x, new);
-        }
-    }
-
-    return (new, (re));
+(cell, ()) push(cell pq, int x) inline {
+    return (pq.udict_set(64, x, begin_cell().end_cell().begin_parse()) , ());
 }
 
 ;; (i, j, brokenX, super, length)
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
-    var pq = null();
-    tuple vis = empty_tuple();
-
-    ;; Get Start and End
+    cell pq = new_dict();
+    tuple notvis = empty_tuple();
+    tuple paths = empty_tuple();
     int si = 0; int sj = 0;
     int ei = 0; int ej = 0;
     
@@ -61,73 +46,69 @@ const int val! = 33;
     repeat(n){
         tuple cur = maze.at(i);
         tuple vis1 = empty_tuple();
+        tuple path1 = empty_tuple();
         repeat(m){
-            vis1~tpush(0);
+            vis1~tpush(-1);
+            path1~tpush(null());
             var c = cur.at(j);
-            if(c == S){
-                si = i;
-                sj = j;
-            }
-            if(c == E){
-                ei = i;
-                ej = j;
-            }
+            if(c == S){ si = i; sj = j; }
+            if(c == E){ ei = i; ej = j; }
+
             j += 1;
         }
-        vis~tpush(vis1);
-        i += 1;
-        j = 0;
+        notvis~tpush(vis1);
+        paths~tpush(path1);
+
+        i += 1; j = 0;
     }
 
     ;; Djikstras on (#X, #?, len)
-    tuple s = double(pack(0, 0, 0, si, sj), null());
-    pq = cons(s, pq);
-    while(~ pq.null?()){
+    int s = pack(0, 0, 0, si, sj);
+    notvis~set2(si, sj, 0); 
+    pq~push(s);
+    
+    while(~ pq.dict_empty?()){
         var x = pq~pop();
+        (int bX, int sup, int len, int i, int j) = unpack(x);
+        ;; ~dump(1000 * i + j);
+
+        tuple path = paths.at(i).at(j);
         
-        (int bX, int sup, int len, int i, int j) = unpack(x.first());
-        if(~ vis.at(i).at(j)){ ;; check if (i, j) is visited
-            vis~set2(i, j, 1); ;; mark as visited
-            tuple path = x.second();
-            
-            ;; If End is reached, construct mazePath.
-            if((i == ei) & (j == ej)){
-                int k = 0;
-                repeat(path.tsize() - 1){
-                    path.at(k);
-                    k += 1;
+        if((i == ei) & (j == ej)){
+            while (~ path.cdr().null?()) {
+                (var x, path) = uncons(path);
+                int ii = x / m; int jj = x % m;
+                maze~set2(ii, jj, val!);
+            }
+            return (bX, sup, len, maze);
+        }
+
+        ;; Move to possible squares
+        int di = 0; int dj = 0;
+        repeat(9){
+            int i' = i + di - 1;
+            int j' = j + dj - 1;
+
+            if((i' >= 0) & (i' < n) & (j' >= 0) & (j' < m)){
+                if(notvis.at(i').at(j')){
+                    int bX' = bX; int sup' = sup; int len' = len + 1;
+                    if(maze.at(i').at(j') == X){ ;; isX?
+                        bX' += 1;
+                    } 
+                    if(maze.at(i').at(j') == Q){ ;; isSup?
+                        sup' += 1;
+                    } 
+
+                    paths~set2(i', j', cons(i * m + j, path));
+                    notvis~set2(i', j', 0); 
+                    int s = pack(bX', sup', len', i', j');
+                    pq~push(s);
                 }
-                return (bX, sup, len, mazePath);
             }
 
-            ;; Move to possible squares
-            int di = -1; int dj = -1;
-            repeat(3){
-                repeat(3){
-                    int i' = i + di;
-                    int j' = j + dj;
-                   
-                    if((i' >= 0) & (i' < n) & (j' >= 0) & (j' < m)){
-                        int bX' = bX; int sup' = sup; int len' = len + 1;
-                        
-                        ;; isX?
-                        if(maze.at(i').at(j') == X){
-                            bX' += 1;
-                        } 
-
-                        ;; isSup?
-                        if(maze.at(i').at(j') == Q){
-                            sup' += 1;
-                        } 
-
-                        tuple s = state(i', j', bX', sup', len', cons(i * m + j, path));
-                        pq = cons(s, pq);
-                    }
-                    dj += 1;
-                }
-                dj = -1;
-                di += 1;
-            }
+            dj += 1;
+            di += dj / 3;
+            dj %= 3;
         }
     }
     return (-1, 0, 0, null());
