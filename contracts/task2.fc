@@ -10,13 +10,12 @@ builder store_addr(builder b, int address) inline {
 }
 
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
-    var cs = in_msg_cell.begin_parse();
-    var flags = cs~load_uint(4); 
-    if ((flags & 1) | (msg.slice_bits() < 32)) {
+    if (msg.slice_bits() < 32) {
         return ();
     }
+    var cs = in_msg_cell.begin_parse().skip_bits(4);
     var sender = cs~load_msg_addr();
-
+    
     var ds = get_data().begin_parse();
     slice admin = ds~load_msg_addr();
     cell users = ds~load_dict();
@@ -79,11 +78,11 @@ builder store_addr(builder b, int address) inline {
 
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
-        
+        builder head = begin_cell()
+                .store_uint(0x18, 6);
         while(f){
             int share = sliceS~load_uint(32);
-            cell msg = begin_cell()
-                .store_uint(0x18, 6)
+            cell msg = head
                 .store_addr(user)
                 .store_coins(share * msg_value / total_share)
                 .store_uint(0, 107)
@@ -100,26 +99,24 @@ builder store_addr(builder b, int address) inline {
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
 
+        builder bodyHead = begin_cell()
+            .store_uint(0x0f8a7ea5, 32)
+            .store_uint(qid, 64);
+        builder msgHead = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(sender)
+            .store_coins(20000000)
+            .store_uint(1, 107);
+                
         while(f){
             int share = sliceS~load_uint(32);
-            cell body = begin_cell()
-                .store_uint(0x0f8a7ea5, 32)
-                .store_uint(qid, 64)
+            cell body = bodyHead
                 .store_coins(share * amount / total_share)
-                .store_addr(user)
-                .store_addr(user)
-                .store_uint(0, 1) ;; no custom payload
-                .store_coins(1)
-                .store_uint(0, 1) ;; no forward payload
+                .store_addr(user).store_addr(user)
+                .store_uint(514, 11) ;; no custom payload
             .end_cell();
 
-            cell msg = begin_cell()
-                .store_uint(0x18, 6)
-                .store_slice(sender)
-                .store_coins(20000000)
-                .store_uint(1, 107)
-                .store_ref(body)
-                .end_cell();
+            cell msg = msgHead.store_ref(body).end_cell();
             send_raw_message(msg, 0);
             
             (user, sliceS, f) = users.udict_get_next?(256, user);
