@@ -17,7 +17,6 @@ forall X -> (tuple, ()) set2(tuple t, int i, int j, X x) inline {
 (tuple, (tuple)) tpop(tuple t) asm "TPOP";
 int tlen(tuple t) asm "TLEN";
 
-
 const int MAXINT = 9223372036854776000;
 const int X = 88;
 const int S = 83;
@@ -87,22 +86,18 @@ const int val! = 33;
         repeat(9){
             int i' = i + di - 1;
             int j' = j + dj - 1;
-
             if((i' >= 0) & (i' < n) & (j' >= 0) & (j' < m)){
                 if(notvis.at(i').at(j')){
                     int bX' = bX - (maze.at(i').at(j') == X);
                     int sup' = sup - (maze.at(i').at(j') == Q);
+                    int s = pack(bX', sup', len + 1, i', j');
 
+                    pq~push(s);
                     paths~set2(i', j', cons(i * m + j, path));
                     notvis~set2(i', j', 0); 
-                    int s = pack(bX', sup', len + 1, i', j');
-                    pq~push(s);
                 }
             }
-
-            dj += 1;
-            di += dj / 3;
-            dj %= 3;
+            dj += 1; di += dj / 3; dj %= 3;
         }
     }
     return (-1, 0, 0, null());

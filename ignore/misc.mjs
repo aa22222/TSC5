@@ -5,7 +5,7 @@ import fs from "fs";
 
 async function main() {
 
-    let a = beginCell().storeUint(514, 14).endCell()
+    let a = beginCell().endCell()
     let b = beginCell().storeUint(0, 1).storeUint(1, 4).storeUint(1, 8).storeUint(0, 1).endCell();
     console.log(a.equals(b));
 }
