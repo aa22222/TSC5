@@ -3,13 +3,6 @@
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
 }
 
-(int) pack(int x, int s, int l, int i, int j) inline {
-    return 1000000000000 * x + 1000000000 * s + 1000000 * l + 1000 * i + j;
-}
-(int, int, int, int, int) unpack(int x) inline {
-    return (x / 1000000000000, x / 1000000000 % 1000, x / 1000000 % 1000, x / 1000 % 1000, x % 1000);
-}
-
 forall X -> (tuple) set(tuple t, X x, int i) asm "SETINDEXVAR";
 forall X -> (tuple, ()) set2(tuple t, int i, int j, X x) inline {
     return (t.set(t.at(i).set(x, j), i), ());
@@ -17,20 +10,35 @@ forall X -> (tuple, ()) set2(tuple t, int i, int j, X x) inline {
 (tuple, (tuple)) tpop(tuple t) asm "TPOP";
 int tlen(tuple t) asm "TLEN";
 
-const int MAXINT = 9223372036854776000;
+(int) pack(int x, int s, int l, int i, int j) inline {
+    int re = x;
+    re = re * 500 + s;
+    re = re * 500 + l;
+    re = re * 32 + i;
+    re = re * 32 + j;
+    return re;
+}
+(int, int, int, int, int) unpack(int x) inline {
+    int j = x~divmod(32);
+    int i = x~divmod(32);
+    int l = x~divmod(500);
+    int s = x~divmod(500);
+    return (x, s, l , i, j);
+}
+
 const int X = 88;
 const int S = 83;
 const int E = 69;
 const int Q = 63;
 const int val! = 33;
-
+const slice blank = ""s;
 (cell, (int)) pop(cell pq) inline {
-    (int x, _, _) = pq~udict::delete_get_min(64);
+    (int x, _, _) = pq~udict::delete_get_min(33);
     return (pq, (x));
 }
 
 (cell, ()) push(cell pq, int x) inline {
-    return (pq.udict_set(64, x, begin_cell().end_cell().begin_parse()) , ());
+    return (pq.udict_set(33, x, blank) , ());
 }
 
 ;; (i, j, brokenX, super, length)
@@ -86,6 +94,7 @@ const int val! = 33;
         repeat(9){
             int i' = i + di - 1;
             int j' = j + dj - 1;
+            dj += 1; di += dj / 3; dj %= 3;
             if((i' >= 0) & (i' < n) & (j' >= 0) & (j' < m)){
                 if(notvis.at(i').at(j')){
                     int bX' = bX - (maze.at(i').at(j') == X);
@@ -97,7 +106,6 @@ const int val! = 33;
                     notvis~set2(i', j', 0); 
                 }
             }
-            dj += 1; di += dj / 3; dj %= 3;
         }
     }
     return (-1, 0, 0, null());
