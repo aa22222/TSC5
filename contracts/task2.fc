@@ -6,7 +6,7 @@
 ;; transfer_notification#7362d09c query_id:uint64 amount:Coins = InternalMsgBody;
 
 builder store_addr(builder b, int address) inline {
-    return b.store_uint(4,3).store_uint(0,8).store_uint(address,256);
+    return b.store_uint(4,3).store_uint(0,8).store_uint(address, 256);
 }
 
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
@@ -102,13 +102,7 @@ builder store_addr(builder b, int address) inline {
 
         while(f){
             int share = sliceS~load_uint(32);
-            cell msg = begin_cell()
-                .store_uint(0x18, 6)
-                .store_slice(sender)
-                .store_coins(20000000)
-                .store_uint(0, 107)
-
-                ;; Transfer body
+            cell body = begin_cell()
                 .store_uint(0x0f8a7ea5, 32)
                 .store_uint(qid, 64)
                 .store_coins(share * amount / total_share)
@@ -117,7 +111,14 @@ builder store_addr(builder b, int address) inline {
                 .store_uint(0, 1) ;; no custom payload
                 .store_coins(1)
                 .store_uint(0, 1) ;; no forward payload
+            .end_cell();
 
+            cell msg = begin_cell()
+                .store_uint(0x18, 6)
+                .store_slice(sender)
+                .store_coins(20000000)
+                .store_uint(1, 107)
+                .store_ref(body)
                 .end_cell();
             send_raw_message(msg, 0);
             

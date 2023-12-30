@@ -10,6 +10,11 @@
     return (x / 1000000000000, x / 1000000000 % 1000, x / 1000000 % 1000, x / 1000 % 1000, x % 1000);
 }
 
+(tuple) set(tuple t, int x, int i) asm "SETINDEXVAR";
+(int) tlen(tuple t) asm "TLEN";
+(tuple) set2(tuple t, int i, int j, int x) inline {
+    return t.set(t.at(i).set(x, j), i);
+}
 const int MAXINT = 99999999999999999999999999999999999;
 const int X = 88;
 const int S = 83;
@@ -82,36 +87,15 @@ const int val! = 33;
         
         (int bX, int sup, int len, int i, int j) = unpack(x.first());
         if(~ vis.at(i).at(j)){ ;; check if (i, j) is visited
-            vis.set(i, j, 1); ;; mark as visited
+            vis~set2(i, j, 1); ;; mark as visited
             tuple path = x.second();
             
             ;; If End is reached, construct mazePath.
             if((i == ei) & (j == ej)){
-                tuple mazePath = empty_tuple();
-                int ii = 0;
-                int jj = 0;
-                repeat(n){
-                    tuple row = empty_tuple();
-                    repeat(m){
-                        ;; Start square
-                        if((ii == si) & (jj == sj)) {
-                            row~tpush(maze.at(ii).at(jj));
-                        }
-
-                        ;; part of path
-                        elseif(in(path, ii * m + jj)) {
-                            row~tpush(val!);
-                        }
-
-                        ;; other
-                        else {
-                            row~tpush(maze.at(ii).at(jj));
-                        }
-                        jj += 1;
-                    }
-                    ii += 1;
-                    jj = 0;
-                    mazePath~tpush(row);
+                int k = 0;
+                repeat(path.tsize() - 1){
+                    path.at(k);
+                    k += 1;
                 }
                 return (bX, sup, len, mazePath);
             }
