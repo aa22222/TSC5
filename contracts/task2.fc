@@ -5,18 +5,6 @@
 ;; split_ton#068530b3 query_id:uint64 = InternalMsgBody;
 ;; transfer_notification#7362d09c query_id:uint64 amount:Coins = InternalMsgBody;
 
-;; builder store_dictE(builder b, cell dict) inline {
-;;     return b.store_uint(1, 1).store_ref(dict); 
-;; }
-
-;; (slice, (cell)) load_dictE(slice s) inline {
-;;     int f = s~load_uint(1);
-;;     if(f){
-;;         return s.load_ref();
-;;     }
-;;     return (s, new_dict());
-;; }
-
 builder store_addr(builder b, int address) inline {
     return b.store_uint(4,3).store_uint(0,8).store_uint(address,256);
 }
@@ -35,6 +23,8 @@ builder store_addr(builder b, int address) inline {
     int op = msg~load_uint(32);
     int qid = msg~load_uint(64);
     if(op == 0x368ddef3){
+        accept_message();
+        
         slice address = msg~load_msg_addr();
         (_, int addr) = address.parse_std_addr();
         throw_if(120, sender.slice_hash() != admin.slice_hash());
@@ -50,8 +40,6 @@ builder store_addr(builder b, int address) inline {
         users~udict_set(256, addr, begin_cell().store_uint(share, 32).end_cell().begin_parse());
         total_share += share;
 
-        ~dump(total_share);
-
         set_data(
             begin_cell()
             .store_slice(admin)
@@ -61,6 +49,8 @@ builder store_addr(builder b, int address) inline {
         );
     }
     if(op == 0x278205c8){
+        accept_message();
+        
         slice address = msg~load_msg_addr();
         (_, int addr) = address.parse_std_addr();
         throw_if(120, sender.slice_hash() != admin.slice_hash());
@@ -70,7 +60,6 @@ builder store_addr(builder b, int address) inline {
 
         int share = sliceS~load_uint(32);
         total_share -= share;
-        ~dump(total_share);
 
         set_data(
             begin_cell()
@@ -81,6 +70,8 @@ builder store_addr(builder b, int address) inline {
         );
     }
     if(op == 0x068530b3){
+        accept_message();
+
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
         
@@ -97,6 +88,8 @@ builder store_addr(builder b, int address) inline {
         }
     }
     if(op == 0x7362d09c){
+        accept_message();
+
         int amount = msg~load_coins();
 
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);

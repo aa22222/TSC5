@@ -3,36 +3,28 @@
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
 }
 
-tuple state(int a, int b, int c, int d, int e, tuple g) asm "6 TUPLE";
-const int MAXINT = 1000000000;
+(int) pack(int x, int s, int l, int i, int j) inline {
+    return 1000000 * l + 1000 * i + j;
+}
+(int, int, int, int, int) unpack(int x) inline {
+    
+}
+const int MAXINT = 99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999;
 const int X = 88;
 const int S = 83;
 const int E = 69;
 const int Q = 63;
 const int val! = 33;
-
-;; (i, j, brokenX, super, length)
-int less(tuple a, tuple b){
-    if(a.at(2) != b.at(2)) {
-        return a.at(2) > b.at(2);
-    }
-    if(a.at(3) != b.at(3)){
-        return a.at(3) > b.at(3);
-    }
-    return a.at(4) > b.at(4);
-}
-
+;; 100000000 100i + j
 int equal(tuple a, tuple b){
     return (a.at(0) == b.at(0)) & 
             (a.at(1) == b.at(1)) & 
             (a.at(2) == b.at(2)) & 
-            (a.at(3) == b.at(3)) & 
-            (a.at(4) == b.at(4));
 }
 
 ;; Get best state
 (tuple, (tuple)) pop(tuple l){
-    tuple re = state(MAXINT, MAXINT, MAXINT, MAXINT, MAXINT, null());
+    tuple re = tuple4();
     tuple og = l;
 
     ;; Find best state, (least tuple)
@@ -98,7 +90,7 @@ int in(tuple vis, int id){
     }
 
     ;; Djikstras on (#X, #?, len)
-    tuple s = state(si, sj, 0, 0, 0, null());
+    tuple s = state(si, sj, 0, null());
     pq = cons(s, pq);
     while(~ pq.null?()){
         var x = pq~pop();
