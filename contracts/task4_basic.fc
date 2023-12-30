@@ -141,7 +141,7 @@ int in(tuple vis, int id){
                     jj = 0;
                     mazePath~tpush(row);
                 }
-                return (bX, sup, len, mazePath);
+                return (-1, sup, len, mazePath);
             }
 
             ;; Move to possible squares
