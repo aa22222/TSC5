@@ -15,7 +15,7 @@ builder store_addr(builder b, int address) inline {
     }
     var cs = in_msg_cell.begin_parse().skip_bits(4);
     var sender = cs~load_msg_addr();
-    
+
     var ds = get_data().begin_parse();
     slice admin = ds~load_msg_addr();
     cell users = ds~load_dict();
@@ -113,7 +113,7 @@ builder store_addr(builder b, int address) inline {
             cell body = bodyHead
                 .store_coins(share * amount / total_share)
                 .store_addr(user).store_addr(user)
-                .store_uint(514, 11) ;; no custom payload
+                .store_uint(514, 14) ;; no custom payload
             .end_cell();
 
             cell msg = msgHead.store_ref(body).end_cell();
