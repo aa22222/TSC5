@@ -23,8 +23,9 @@ builder store_addr(builder b, int address) inline {
     int op = msg~load_uint(32);
     int qid = msg~load_uint(64);
     if(op == 0x368ddef3){
-        accept_message();        
-        (_, int addr) = msg.skip_bits(11).load_uint(256);
+        accept_message();
+        slice address = msg~load_msg_addr();
+        (_, int addr) = address.parse_std_addr();
         
         throw_if(120, sender.slice_hash() != admin.slice_hash());
 
@@ -39,8 +40,9 @@ builder store_addr(builder b, int address) inline {
         );
     }
     if(op == 0x278205c8){
-        accept_message();        
-        (_, int addr) = msg.skip_bits(11).load_uint(256);
+        accept_message();
+        slice address = msg~load_msg_addr();
+        (_, int addr) = address.parse_std_addr();
 
         throw_if(120, sender.slice_hash() != admin.slice_hash());
 
