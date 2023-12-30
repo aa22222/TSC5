@@ -70,7 +70,6 @@ const int val! = 33;
     while(~ pq.dict_empty?()){
         var x = pq~pop();
         (int bX, int sup, int len, int i, int j) = unpack(x);
-        ;; ~dump(1000 * i + j);
 
         tuple path = paths.at(i).at(j);
         
@@ -91,17 +90,12 @@ const int val! = 33;
 
             if((i' >= 0) & (i' < n) & (j' >= 0) & (j' < m)){
                 if(notvis.at(i').at(j')){
-                    int bX' = bX; int sup' = sup; int len' = len + 1;
-                    if(maze.at(i').at(j') == X){ ;; isX?
-                        bX' += 1;
-                    } 
-                    if(maze.at(i').at(j') == Q){ ;; isSup?
-                        sup' += 1;
-                    } 
+                    int bX' = bX - (maze.at(i').at(j') == X);
+                    int sup' = sup - (maze.at(i').at(j') == Q);
 
                     paths~set2(i', j', cons(i * m + j, path));
                     notvis~set2(i', j', 0); 
-                    int s = pack(bX', sup', len', i', j');
+                    int s = pack(bX', sup', len + 1, i', j');
                     pq~push(s);
                 }
             }
