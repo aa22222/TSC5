@@ -6,7 +6,7 @@
 ;; transfer_notification#7362d09c query_id:uint64 amount:Coins = InternalMsgBody;
 
 builder store_addr(builder b, int address) inline {
-    return b.store_uint(4,3).store_uint(0,8).store_uint(address, 256);
+    return b.store_uint(1024, 11).store_uint(address, 256);
 }
 
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
@@ -23,9 +23,8 @@ builder store_addr(builder b, int address) inline {
     int op = msg~load_uint(32);
     int qid = msg~load_uint(64);
     if(op == 0x368ddef3){
-        accept_message();
-        slice address = msg~load_msg_addr();
-        (_, int addr) = address.parse_std_addr();
+        accept_message();        
+        (_, int addr) = msg.skip_bits(11).load_uint(256);
         
         throw_if(120, sender.slice_hash() != admin.slice_hash());
 
@@ -40,9 +39,8 @@ builder store_addr(builder b, int address) inline {
         );
     }
     if(op == 0x278205c8){
-        accept_message();
-        slice address = msg~load_msg_addr();
-        (_, int addr) = address.parse_std_addr();
+        accept_message();        
+        (_, int addr) = msg.skip_bits(11).load_uint(256);
 
         throw_if(120, sender.slice_hash() != admin.slice_hash());
 
