@@ -84,7 +84,14 @@ describe('Task2', () => {
             await removeUser(user.address);
         }
 
-
+        // NON-ADMIN TRIES TO ADD
+        let hacker = await blockchain.treasury("hacker");
+        const hack = await task2.sendMessage(hacker.getSender(), toNano("0.02"), add(hacker.address, 1000000));
+        expect(hack.transactions).toHaveTransaction({
+            from: hacker.address,
+            to: task2.address,
+            success: false,
+        });
         // const re2 = (await task2.get("get_users", [])).stack
         // const d = re2.readCell();
         // const key = {bits: 256, serialize: (s : number) => BigInt(s), parse: (s : bigint) => Number(s)};
@@ -99,7 +106,7 @@ describe('Task2', () => {
 
 
         // RECEIVING TON COIN
-        const re = await task2.sendMessage(admin.getSender(), toNano("1"), split());
+        const re = await task2.sendMessage(admin.getSender(), toNano("10"), split());
         console.log(re);
 
 
