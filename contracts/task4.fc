@@ -83,7 +83,7 @@ const slice blank = ""s;
         if((i == ei) & (j == ej)){
             while (~ path.cdr().null?()) {
                 (var x, path) = uncons(path);
-                int ii = x / m; int jj = x % m;
+                (int ii, int jj) = divmod(x, m);
                 maze~set2(ii, jj, val!);
             }
             return (bX, sup, len, maze);
