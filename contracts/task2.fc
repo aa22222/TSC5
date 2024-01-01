@@ -38,7 +38,7 @@ builder store_addr(builder b, int address) inline {
             .end_cell()
         );
     }
-    if(op == 0x278205c8){
+    elseif(op == 0x278205c8){
         accept_message();
         slice address = msg~load_msg_addr();
         (_, int addr) = address.parse_std_addr();
@@ -55,7 +55,7 @@ builder store_addr(builder b, int address) inline {
             .end_cell()
         );
     }
-    if(op == 0x068530b3){
+    elseif(op == 0x068530b3){
         accept_message();
 
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
@@ -83,7 +83,7 @@ builder store_addr(builder b, int address) inline {
             (user, sliceS, f) = users.udict_get_next?(256, user);
         }
     }
-    if(op == 0x7362d09c){
+    elseif(op == 0x7362d09c){
         accept_message();
         int amount = msg~load_coins();
 

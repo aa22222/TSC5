@@ -5,8 +5,6 @@
 
 forall X -> (tuple, ()) ~set(tuple t, X x, int i) asm "SETINDEXVAR";
 forall X -> tuple set(tuple t, X x, int i) asm "SETINDEXVAR";
-(tuple, (tuple)) tpop(tuple t) asm "TPOP";
-int tlen(tuple t) asm "TLEN";
 
 const keySize = 33;
 const int X = 88;
