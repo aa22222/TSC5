@@ -107,7 +107,7 @@ describe('Task2', () => {
 
         // RECEIVING TON COIN
         const re = await task2.sendMessage(admin.getSender(), toNano("10"), split());
-        console.log(re);
+        console.log(re.gas_consumed);
 
 
     });

@@ -36,26 +36,22 @@ int version() method_id {
 
     ;; Check for updates
     int update_needed = version < xpVersion;
-    if(~ update_needed){
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        set_data(wrap_storage(version, storage));
-        return ();
+    if(update_needed){
+        throw_if(200, xpCode.cell_null?()); 
+        while(version < xpVersion) {
+            (slice vs, int f) = migrations.udict_get?(32, version);
+            throw_unless(400, f);
+            version = vs~load_uint(32);
+            cell update_code = vs~load_maybe_ref();
+            if(~ update_code.cell_null?()){
+                set_c3(update_code.begin_parse().bless());
+                storage = migrate_one(storage);
+            }
+        }
+        set_c3(xpCode.begin_parse().bless());
+        set_code(xpCode);
     }
 
-    throw_if(200, xpCode.cell_null?()); 
-    while(version < xpVersion) {
-        (slice vs, int f) = migrations.udict_get?(32, version);
-        throw_unless(400, f);
-        version = vs~load_uint(32);
-        cell update_code = vs~load_maybe_ref();
-        if(~ update_code.cell_null?()){
-            set_c3(update_code.begin_parse().bless());
-            storage = migrate_one(storage);
-        }
-    }
-    set_c3(xpCode.begin_parse().bless());
-    set_code(xpCode);
-    
     storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
     set_data(wrap_storage(version, storage));
 }

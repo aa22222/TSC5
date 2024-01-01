@@ -6,11 +6,14 @@
 () recv_external(slice in_msg) impure {
     int op = in_msg~load_uint(32);
     var ds = get_data().begin_parse();
-    var (pubkey, time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32), ds~load_msg_addr(), ds~load_uint(32));
+    var (pubkey, time, receiver) = (ds~load_uint(256), ds~load_uint(32), ds~load_msg_addr());
 
     if(op == 0x9df10277){
-        var (qid, sign, ref) = (in_msg~load_uint(64), in_msg~load_bits(512), in_msg~load_ref());
-        ds = ref.begin_parse();
+        in_msg~skip_bits(64);
+        int seqno = ds~load_uint(32);
+        slice sign = in_msg~load_bits(512);
+        cell ref = in_msg~load_ref();
+        slice ds = ref.begin_parse();
         var (lock, seqno') = (ds~load_uint(32), ds~load_uint(32));
 
         throw_unless(119, seqno' == seqno + 1);
@@ -31,8 +34,6 @@
     }
 
     elseif(op == 0xbb4be234) {
-        var qid = in_msg~load_uint(64);
-
         throw_if(124, now() < time);
         accept_message();
 
@@ -48,12 +49,12 @@
 
 int get_seqno() method_id {
     var ds = get_data().begin_parse();
-    var (pubkey, time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32), ds~load_msg_addr(), ds~load_uint(32));
-    return seqno;
+    ds~skip_bits(256 + 32 + 267);
+    return ds~load_uint(32);
 }
 
 int get_execution_time() method_id {
     var ds = get_data().begin_parse();
-    var (pubkey, time) = (ds~load_uint(256), ds~load_uint(32));
-    return time;
+    ds~skip_bits(256);
+    return ds~load_uint(32);
 }
