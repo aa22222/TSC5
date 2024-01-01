@@ -2,17 +2,16 @@
 
 cell get_storage() inline {
     slice cs = get_data().begin_parse();
-    return cs.preload_ref();
+    return cs~load_ref();
 }
 
 int version() method_id {
     var ds = get_data().begin_parse();
-    return ds.preload_uint(32);
+    return ds~load_uint(32);
 }
 
 () recv_internal(int msg_value, int balance, cell in_msg_full, slice in_msg_body) impure {
     int xpVersion = in_msg_body~load_uint(32); 
-    slice ds = get_data().begin_parse();
 
     ;; version_id:uint32 contractStorage:^Cell = wrapperStorage
     if(xpVersion == 0){
@@ -21,17 +20,21 @@ int version() method_id {
             .store_uint(1, 32)
             .store_ref(get_data())
         .end_cell());
+        return ();
     }
-    elseif(ds.preload_uint(32) < xpVersion){
-        cell xpCode = in_msg_body~load_maybe_ref();
+
+    cell xpCode = in_msg_body~load_maybe_ref();
+    cell migrations = in_msg_body~load_dict(); 
+    cell payload = in_msg_body~load_ref();
+
+    slice ds = get_data().begin_parse();
+    int version = ds~load_uint(32);
+    cell storage = ds~load_ref();
+
+    ;; Check for updates
+    int update_needed = version < xpVersion;
+    if(update_needed){
         throw_if(200, xpCode.cell_null?()); 
-
-        cell migrations = in_msg_body~load_dict(); 
-        cell payload = in_msg_body~load_ref();
-
-        int version = ds.preload_uint(32);
-        cell storage = ds.preload_ref();
-
         while(version < xpVersion) {
             (slice vs, int f) = migrations.udict_get?(32, version);
             throw_unless(400, f);
@@ -44,29 +47,14 @@ int version() method_id {
         }
         set_c3(xpCode.begin_parse().bless());
         set_code(xpCode);
-        
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        set_data( 
-            begin_cell()
-            .store_uint(version, 32)
-            .store_ref(storage)
-        .end_cell()); 
     }
-    else {
-        cell xpCode = in_msg_body~load_maybe_ref();
-        cell migrations = in_msg_body~load_dict(); 
 
-        cell payload = in_msg_body~load_ref();
-        int version = ds.preload_uint(32);
-        cell storage = ds.preload_ref();
-
-        storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
-        set_data( 
-            begin_cell()
-            .store_uint(version, 32)
-            .store_ref(storage)
-        .end_cell()); 
-    }   
+    storage = process_message(storage, msg_value, balance, in_msg_full, payload.begin_parse());
+    set_data( 
+        begin_cell()
+        .store_uint(version, 32)
+        .store_ref(storage)
+    .end_cell());    
 }
 
 

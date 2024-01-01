@@ -7,11 +7,14 @@
 builder store_addr(builder b, int address) inline {
     return b.store_uint(1024, 11).store_uint(address, 256);
 }
+int sequal(slice s, slice s') asm "SDEQ";
 
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
     if (msg.slice_bits() < 32) {
         return ();
     }
+    accept_message();
+
     var cs = in_msg_cell.begin_parse().skip_bits(4);
     var sender = cs~load_msg_addr();
 
@@ -22,11 +25,10 @@ builder store_addr(builder b, int address) inline {
     int op = msg~load_uint(32);
     int qid = msg~load_uint(64);
     if(op == 0x368ddef3){
-        accept_message();
         slice address = msg~load_msg_addr();
         (_, int addr) = address.parse_std_addr();
         
-        throw_if(120, sender.slice_hash() != admin.slice_hash());
+        throw_unless(120, sequal(sender, admin));
 
         int share = msg~load_uint(32);
         users~udict_set(256, addr, begin_cell().store_uint(share, 32).end_cell().begin_parse());
@@ -39,11 +41,10 @@ builder store_addr(builder b, int address) inline {
         );
     }
     elseif(op == 0x278205c8){
-        accept_message();
         slice address = msg~load_msg_addr();
         (_, int addr) = address.parse_std_addr();
 
-        throw_if(120, sender.slice_hash() != admin.slice_hash());
+        throw_unless(120, sequal(sender, admin));
 
         int f = users~udict_delete?(256, addr);
         throw_unless(121, f);
@@ -56,8 +57,6 @@ builder store_addr(builder b, int address) inline {
         );
     }
     elseif(op == 0x068530b3){
-        accept_message();
-
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
 
@@ -84,7 +83,6 @@ builder store_addr(builder b, int address) inline {
         }
     }
     elseif(op == 0x7362d09c){
-        accept_message();
         int amount = msg~load_coins();
 
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
@@ -113,7 +111,7 @@ builder store_addr(builder b, int address) inline {
                 .store_coins(muldiv(share, amount, total_share))
                 .store_addr(user)
                 .store_addr(user)
-                .store_uint(514, 14) ;; no custom payload
+                .store_uint(514, 14) 
             .end_cell();
 
             cell msg = msgHead.store_ref(body).end_cell();
