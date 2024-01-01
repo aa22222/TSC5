@@ -3,7 +3,8 @@
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
 }
 
-forall X -> (tuple, ()) set(tuple t, X x, int i) asm "SETINDEXVAR";
+forall X -> (tuple, ()) ~set(tuple t, X x, int i) asm "SETINDEXVAR";
+forall X -> tuple set(tuple t, X x, int i) asm "SETINDEXVAR";
 (tuple, (tuple)) tpop(tuple t) asm "TPOP";
 int tlen(tuple t) asm "TLEN";
 
