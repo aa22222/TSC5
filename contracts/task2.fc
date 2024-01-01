@@ -5,10 +5,6 @@
 ;; split_ton#068530b3 query_id:uint64 = InternalMsgBody;
 ;; transfer_notification#7362d09c query_id:uint64 amount:Coins = InternalMsgBody;
 
-builder store_addr(builder b, int address) inline {
-    return b.store_uint(1024, 11).store_uint(address, 256);
-}
-
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
     if (msg.slice_bits() < 32) {
         return ();
@@ -78,7 +74,7 @@ builder store_addr(builder b, int address) inline {
         while(f){
             int share = sliceS~load_uint(32);
             cell msg = head
-                .store_addr(user)
+                .store_uint(1024, 11).store_uint(user, 256)
                 .store_coins(share * msg_value / total_share)
                 .store_uint(0, 107)
                 .end_cell();
@@ -116,7 +112,8 @@ builder store_addr(builder b, int address) inline {
             int share = sliceS~load_uint(32);
             cell body = bodyHead
                 .store_coins(share * amount / total_share)
-                .store_addr(user).store_addr(user)
+                .store_uint(1024, 11).store_uint(user, 256)
+                .store_uint(1024, 11).store_uint(user, 256)
                 .store_uint(514, 14) ;; no custom payload
             .end_cell();
 
