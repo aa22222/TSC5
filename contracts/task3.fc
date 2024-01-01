@@ -60,5 +60,10 @@ int version() method_id {
 
 
 ;; <<<<< Custom version-specific code begins
-
+cell process_message(cell storage, int msg_value, int balance, cell in_msg_full, slice payload){
+    return null();
+}
+cell migrate_one(cell storage){
+    return null();
+}
 ;; Custom version-specific code ends >>>>>
