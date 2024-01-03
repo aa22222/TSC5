@@ -29,7 +29,7 @@ const slice blank = ""s;
         tuple path1 = empty_tuple();
         repeat(m){
             vis1~tpush(-1);
-            path1~tpush(null());
+            path1~tpush(0);
             var c = cur.at(j);
             if(c == S){ si = i; sj = j; }
             if(c == E){ ei = i; ej = j; }
@@ -52,17 +52,16 @@ const slice blank = ""s;
 
         int j = x~divmod(32);
         int i = x~divmod(32);
-        int len = x~divmod(500);
-        int sup = x~divmod(500);
+        int len = x~divmod(512);
+        int sup = x~divmod(512);
         int bX = x;
 
         tuple path = paths.at(i).at(j);
         
         if((i == ei) & (j == ej)){
-            while (~ path.cdr().null?()) {
-                (var x, path) = uncons(path);
-                (int ii, int jj) = divmod(x, m);
-                maze~set(maze.at(ii).set(val!, jj), ii);
+            repeat(len - 1){
+                (i, j) = divmod(paths.at(i).at(j), 1024);
+                maze~set(maze.at(i).set(val!, j), i);
             }
             return (bX, sup, len, maze);
         }
@@ -79,13 +78,13 @@ const slice blank = ""s;
                     int sup' = sup - (maze.at(i').at(j') == Q);
 
                     int s = bX';
-                    s = s * 500 + sup';
-                    s = s * 500 + len + 1;
+                    s = s * 512 + sup';
+                    s = s * 512 + len + 1;
                     s = s * 32 + i';
                     s = s * 32 + j';
 
                     pq~udict_set(keySize, s, blank);
-                    paths~set(paths.at(i').set(cons(i * m + j, path), j'), i');
+                    paths~set(paths.at(i').set((i << 10) + j, j'), i'); ;; paths[i'][j'] = i << 10 + j
                     notvis~set(notvis.at(i').set(0, j'), i');
                 }
             }
