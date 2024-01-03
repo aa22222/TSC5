@@ -4,7 +4,20 @@ cell get_storage() inline {
     slice cs = get_data().begin_parse();
     return cs~load_ref();
 }
+(int, cell) update(cell storage, int version, cell update_code) asm 
+"""
+1 SETGLOB
+SWAP
+1 GETGLOB
+ISNULL
+IFRET
 
+1 GETGLOB
+CTOS
+BLESS
+c3 POP
+migrate_one CALLDICT
+""";
 int version() method_id {
     var ds = get_data().begin_parse();
     return ds~load_uint(32);
@@ -40,10 +53,7 @@ int version() method_id {
             throw_unless(400, f);
             version = vs~load_uint(32);
             cell update_code = vs~load_maybe_ref();
-            if(~ update_code.cell_null?()){
-                set_c3(update_code.begin_parse().bless());
-                storage = migrate_one(storage);
-            }
+            (version, storage) = update(storage, version, update_code);
         }
         set_c3(xpCode.begin_parse().bless());
         set_code(xpCode);

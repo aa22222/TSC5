@@ -39,8 +39,9 @@ int sequal(slice s, slice s') asm "SDEQ";
             .store_dict(users)
             .end_cell()
         );
+        return ();
     }
-    elseif(op == 0x278205c8){
+    if(op == 0x278205c8){
         slice address = msg~load_msg_addr();
         (_, int addr) = address.parse_std_addr();
 
@@ -55,8 +56,9 @@ int sequal(slice s, slice s') asm "SDEQ";
             .store_dict(users)
             .end_cell()
         );
+        return ();
     }
-    elseif(op == 0x068530b3){
+    if(op == 0x068530b3){
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
 
@@ -81,8 +83,9 @@ int sequal(slice s, slice s') asm "SDEQ";
             send_raw_message(msg, 1);
             (user, sliceS, f) = users.udict_get_next?(256, user);
         }
+        return ();
     }
-    elseif(op == 0x7362d09c){
+    if(op == 0x7362d09c){
         int amount = msg~load_coins();
 
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
@@ -119,6 +122,7 @@ int sequal(slice s, slice s') asm "SDEQ";
             
             (user, sliceS, f) = users.udict_get_next?(256, user);
         }
+        return ();
     }
 }
 
