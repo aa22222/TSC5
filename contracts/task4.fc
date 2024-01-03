@@ -18,7 +18,6 @@ const slice blank = ""s;
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
     cell pq = new_dict();
     tuple notvis = empty_tuple();
-    tuple paths = empty_tuple();
     int si = 0; int sj = 0;
     int ei = 0; int ej = 0;
     
@@ -26,10 +25,8 @@ const slice blank = ""s;
     repeat(n){
         tuple cur = maze.at(i);
         tuple vis1 = empty_tuple();
-        tuple path1 = empty_tuple();
         repeat(m){
             vis1~tpush(-1);
-            path1~tpush(0);
             var c = cur.at(j);
             if(c == S){ si = i; sj = j; }
             if(c == E){ ei = i; ej = j; }
@@ -37,10 +34,10 @@ const slice blank = ""s;
             j += 1;
         }
         notvis~tpush(vis1);
-        paths~tpush(path1);
 
         i += 1; j = 0;
     }
+    tuple paths = notvis;
 
     ;; Djikstras on (#X, #?, len)
     int s = 32 * si + sj;  
@@ -67,11 +64,11 @@ const slice blank = ""s;
         }
 
         ;; Move to possible squares
-        int di = 0; int dj = 0;
+        int k = 0;
         repeat(9){
-            int i' = i + di - 1;
-            int j' = j + dj - 1;
-            dj += 1; di += dj / 3; dj %= 3;
+            int i' = i + k / 3 - 1;
+            int j' = j + k % 3 - 1;
+            k += 1;
             if((i' >= 0) & (i' < n) & (j' >= 0) & (j' < m)){
                 if(notvis.at(i').at(j')){
                     int bX' = bX - (maze.at(i').at(j') == X);
