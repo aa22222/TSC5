@@ -28,9 +28,10 @@
             .store_uint(seqno', 32)
             .end_cell()
         );
+        return ();
     }
 
-    elseif(op == 0xbb4be234) {
+    if(op == 0xbb4be234) {
         var qid = in_msg~load_uint(64);
 
         throw_if(124, now() < time);
@@ -43,6 +44,7 @@
             .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
             .end_cell();
         send_raw_message(msg, 128);
+        return ();
     }
 }
 
