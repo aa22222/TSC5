@@ -4,7 +4,7 @@
 ;; remove_user#278205c8 query_id:uint64 address:MsgAddressInt = InternalMsgBody;
 ;; split_ton#068530b3 query_id:uint64 = InternalMsgBody;
 ;; transfer_notification#7362d09c query_id:uint64 amount:Coins = InternalMsgBody;
-builder store_addr(builder b, int address) asm "SWAP x{801} STSLICECONST 256 STU";
+builder store_addr(builder b, int address) asm "SWAP x{801} PUSHSLICE STSLICE 256 STU";
 
 int sequal(slice s, slice s') asm "SDEQ";
 
