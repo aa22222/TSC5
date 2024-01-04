@@ -12,6 +12,7 @@ int sequal(slice s, slice s') asm "SDEQ";
     if (msg.slice_bits() < 32) {
         return ();
     }
+    accept_message();
     var cs = in_msg_cell.begin_parse().skip_bits(4);
     var sender = cs~load_msg_addr();
 
