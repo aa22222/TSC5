@@ -44,7 +44,7 @@ const slice blank = ""s;
     notvis~set(notvis.at(si).set(0, sj), si);
     pq~udict_set(keySize, s, blank);
     
-    while(~ pq.dict_empty?()){
+    repeat(1000){
         (int x, _, _) = pq~udict::delete_get_min(keySize);
 
         int j = x~divmod(32);
@@ -53,8 +53,6 @@ const slice blank = ""s;
         int sup = x~divmod(512);
         int bX = x;
 
-        tuple path = paths.at(i).at(j);
-        
         if((i == ei) & (j == ej)){
             repeat(len - 1){
                 (i, j) = divmod(paths.at(i).at(j), 1024);
