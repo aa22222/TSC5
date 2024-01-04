@@ -39,7 +39,7 @@ describe('Task2', () => {
     let admin: SandboxContract<TreasuryContract>;
 
     async function addUser(address : Address, share : number){
-        await task2.sendMessage(admin.getSender(), toNano("0.02"), add(address, share));
+        const re = await task2.sendMessage(admin.getSender(), toNano("0.02"), add(address, share));
         expected.set(address.toString(), share);
     }
     async function removeUser(address : Address){
@@ -107,7 +107,7 @@ describe('Task2', () => {
 
         // RECEIVING TON COIN
         const re = await task2.sendMessage(admin.getSender(), toNano("10"), split());
-        console.log(re.gas_consumed);
+        console.log(re);
 
 
     });
