@@ -7,6 +7,7 @@
 builder store_addr(builder b, int address) inline {
     return b.store_uint(1024, 11).store_uint(address, 256);
 }
+(cell, slice, int) udict_set_get?(slice x, int i, cell D, int n) asm "DICTUSETGET NULLSWAPIFNOT";
 int sequal(slice s, slice s') asm "SDEQ";
 
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
@@ -29,7 +30,14 @@ int sequal(slice s, slice s') asm "SDEQ";
         msg~skip_bits(11);
         int addr = msg~load_uint(256);
         int share = msg~load_uint(32);
-        users~udict_set(256, addr, begin_cell().store_uint(share, 32).end_cell().begin_parse());
+        (users, slice shares, int f) = udict_set_get?(begin_cell().store_uint(share, 32).end_cell().begin_parse(), addr, users, 256);
+
+        ;;update total_share
+        (slice sliceS, _) = users.udict_get?(256, 0);
+        int total_share = sliceS~load_uint(64);
+        total_share += share;
+        if(f) { total_share -= shares~load_uint(32); }
+        users~udict_set(256, 0, begin_cell().store_uint(total_share, 64).end_cell().begin_parse());
 
         set_data(
             begin_cell()
@@ -42,10 +50,18 @@ int sequal(slice s, slice s') asm "SDEQ";
     if(op == 0x278205c8){        
         throw_unless(120, sequal(sender, admin));
 
+        ;; delete user
         msg~skip_bits(11);
         int addr = msg~load_uint(256);
-        int f = users~udict_delete?(256, addr);
+        (slice shares, int f) = users~udict_delete_get?(256, addr);
         throw_unless(121, f);
+
+        ;;update total_share
+        (slice sliceS, _) = users.udict_get?(256, 0);
+        int total_share = sliceS~load_uint(64);
+        int share = shares~load_uint(32);
+        total_share -= share;
+        users~udict_set(256, 0, begin_cell().store_uint(total_share, 64).end_cell().begin_parse());
 
         set_data(
             begin_cell()
@@ -56,17 +72,12 @@ int sequal(slice s, slice s') asm "SDEQ";
         return ();
     }
     if(op == 0x068530b3){
+        (slice sliceS, _) = users.udict_get?(256, 0);
+        int total_share = sliceS~load_uint(64);
+
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
-
-        int total_share = 0;
-        while(f){
-            int share = sliceS~load_uint(32);
-            total_share += share;
-            (user, sliceS, f) = users.udict_get_next?(256, user);
-        }
-
-        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
+        
         builder head = begin_cell()
                 .store_uint(0x18, 6);
 
@@ -85,17 +96,12 @@ int sequal(slice s, slice s') asm "SDEQ";
     if(op == 0x7362d09c){
         int amount = msg~load_coins();
 
+        (slice sliceS, _) = users.udict_get?(256, 0);
+        int total_share = sliceS~load_uint(64);
+
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
 
-        int total_share = 0;
-        while(f){
-            int share = sliceS~load_uint(32);
-            total_share += share;
-            (user, sliceS, f) = users.udict_get_next?(256, user);
-        }
-
-        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         builder bodyHead = begin_cell()
             .store_uint(0x0f8a7ea5, 32)
             .store_uint(qid, 64);
