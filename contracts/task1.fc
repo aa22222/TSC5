@@ -9,7 +9,7 @@
     var (pubkey, time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32), ds~load_msg_addr(), ds~load_uint(32));
     if(op == 0x9df10277){
         var (qid, sign, ref) = (in_msg~load_uint(64), in_msg~load_bits(512), in_msg~load_ref());
-        ds = ref.begin_parse();
+        var ds = ref.begin_parse();
         var (lock, seqno') = (ds~load_uint(32), ds~load_uint(32));
 
         throw_unless(119, seqno' == seqno + 1);

@@ -36,10 +36,9 @@ const slice blank = ""s;
     tuple paths = maze;
 
     ;; Djikstras on (#X, #?, len)
-    int s = 32 * si + sj;  
     paths~set(paths.at(si).set(-1, sj), si);
+    int s = 32 * si + sj;  
     pq~udict_set(keySize, s, blank);
-    
     repeat(1000){
         (int x, _, _) = pq~udict::delete_get_min(keySize);
 
