@@ -13,30 +13,57 @@ const int E = 69;
 const int Q = 63;
 const int val! = 33;
 const slice blank = ""s;
+(int, int) getEnds(tuple maze) asm 
+"""
+0 INT 1 SETGLOB
+32 INT EXPLODEVAR
+REPEAT:<{
+    32 INT EXPLODEVAR
+    REPEAT:<{
+        DUP
+        83 EQINT
+        IF:<{
+            1 GETGLOB 
+            2 SETGLOB
+        }>
+        69 EQINT
+        IF:<{
+            1 GETGLOB 
+            3 SETGLOB
+        }>
 
+        1 GETGLOB
+        s0 DUMP
+        INC
+        1 SETGLOB
+    }>
+}>
+2 GETGLOB 3 GETGLOB
+""";
 ;; (i, j, brokenX, super, length)
 (int, int, int, tuple) solve(int n, int m, tuple maze) method_id {
     cell pq = new_dict();
-    tuple notvis = empty_tuple();
-    int si = 0; int sj = 0;
-    int ei = 0; int ej = 0;
-    
-    int i = 0; int j = 0;
+
+    ;; (int sk, int ek) = getEnds(maze);
+    ;; (int si, int sj) = divmod(sk, m);
+    ;; (int ei, int ej) = divmod(ek, m);
+    (int si, int sj) = (0 ,0);
+    (int ei, int ej) = (0, 0);
+    (int i, int j) = (0, 0);
     repeat(n){
         tuple cur = maze.at(i);
-        tuple vis1 = empty_tuple();
         repeat(m){
-            vis1~tpush(-1);
             var c = cur.at(j);
             if(c == S){ si = i; sj = j; }
             if(c == E){ ei = i; ej = j; }
 
             j += 1;
         }
-        notvis~tpush(vis1);
 
         i += 1; j = 0;
     }
+
+    tuple notvis = maze;
     tuple paths = notvis;
 
     ;; Djikstras on (#X, #?, len)
