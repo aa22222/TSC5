@@ -58,24 +58,30 @@ const slice blank = ""s;
         }
 
         ;; Move to possible squares
-        int k = 0;
-        repeat(9){
-            int i' = i + k / 3 - 1;
-            int j' = j + k % 3 - 1;
-            k += 1;
-            if((i' >= 0) & (i' < n) & (j' >= 0) & (j' < m)){
-                if(paths.at(i').at(j') > 0){
-                    int bX' = bX - (maze.at(i').at(j') == X);
-                    int sup' = sup - (maze.at(i').at(j') == Q);
+        int di = -1;
+        repeat(3){
+            int i' = i + di;
+            di += 1; 
+            int dj = -1;
+            if((i' >= 0) & (i' < n)){
+                repeat(3){
+                    int j' = j + dj;
+                    dj += 1;
+                    if ((j' >= 0) & (j' < m)){
+                        if(paths.at(i').at(j') > 0){
+                            int bX' = bX - (maze.at(i').at(j') == X);
+                            int sup' = sup - (maze.at(i').at(j') == Q);
 
-                    int s = bX';
-                    s = s * 512 + sup';
-                    s = s * 512 + len + 1;
-                    s = s * 32 + i';
-                    s = s * 32 + j';
+                            int s = bX';
+                            s = s * 512 + sup';
+                            s = s * 512 + len + 1;
+                            s = s * 32 + i';
+                            s = s * 32 + j';
 
-                    pq~udict_set(keySize, s, blank);
-                    paths~set(paths.at(i').set( - ((i << 10) + j), j'), i'); ;; paths[i'][j'] = i << 10 + j
+                            pq~udict_set(keySize, s, blank);
+                            paths~set(paths.at(i').set( - ((i << 10) + j), j'), i'); ;; paths[i'][j'] = i << 10 + j
+                        }
+                    }
                 }
             }
         }
