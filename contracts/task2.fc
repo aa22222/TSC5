@@ -4,16 +4,16 @@
 ;; remove_user#278205c8 query_id:uint64 address:MsgAddressInt = InternalMsgBody;
 ;; split_ton#068530b3 query_id:uint64 = InternalMsgBody;
 ;; transfer_notification#7362d09c query_id:uint64 amount:Coins = InternalMsgBody;
-
 builder store_addr(builder b, int address) inline {
-    return b.store_uint(1024,11).store_uint(address, 256);
+    return b.store_uint(1024, 11).store_uint(address, 256);
 }
-int slice_equal(slice s, slice s') asm "SDEQ";
+int sequal(slice s, slice s') asm "SDEQ";
 
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
     if (msg.slice_bits() < 32) {
         return ();
     }
+    accept_message();
     var cs = in_msg_cell.begin_parse().skip_bits(4);
     var sender = cs~load_msg_addr();
 
@@ -22,20 +22,30 @@ int slice_equal(slice s, slice s') asm "SDEQ";
     cell users = ds~load_dict();
 
     int op = msg~load_uint(32);
-    int qid = msg~load_uint(64);
-    if((op == 0x368ddef3) | (op == 0x278205c8)){
-        throw_unless(120, slice_equal(sender, admin));
+    msg~skip_bits(64);
+    if(op == 0x368ddef3){
+        throw_unless(120, sequal(sender, admin));
 
         msg~skip_bits(11);
         int addr = msg~load_uint(256);
-        
-        (slice sliceS, int f) = users~udict_delete_get?(256, addr);
-        throw_if(121, op == 0x278205c8 & (~ f));
-        
-        if(op == 0x368ddef3){
-            int share = msg~load_uint(32);
-            users~udict_set(256, addr, begin_cell().store_uint(share, 32).end_cell().begin_parse());
-        }
+        int share = msg~load_uint(32);
+        users~udict_set(256, addr, begin_cell().store_uint(share, 32).end_cell().begin_parse());
+
+        set_data(
+            begin_cell()
+            .store_slice(admin)
+            .store_dict(users)
+            .end_cell()
+        );
+        return ();
+    }
+    if(op == 0x278205c8){        
+        throw_unless(120, sequal(sender, admin));
+
+        msg~skip_bits(11);
+        int addr = msg~load_uint(256);
+        int f = users~udict_delete?(256, addr);
+        throw_unless(121, f);
 
         set_data(
             begin_cell()
@@ -57,12 +67,14 @@ int slice_equal(slice s, slice s') asm "SDEQ";
         }
 
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
+        builder head = begin_cell()
+                .store_uint(0x18, 6);
+
         while(f){
             int share = sliceS~load_uint(32);
-            cell msg = begin_cell()
-                .store_uint(0x18, 6)
+            cell msg = head
                 .store_addr(user)
-                .store_coins(share * msg_value / total_share)
+                .store_coins(muldiv(share, msg_value, total_share))
                 .store_uint(0, 107)
                 .end_cell();
             send_raw_message(msg, 1);
@@ -83,16 +95,16 @@ int slice_equal(slice s, slice s') asm "SDEQ";
             (user, sliceS, f) = users.udict_get_next?(256, user);
         }
 
+        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         builder bodyHead = begin_cell()
             .store_uint(0x0f8a7ea5, 32)
-            .store_uint(qid, 64);
+            .store_uint(1, 64);
         builder msgHead = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(sender)
             .store_coins(20000000)
             .store_uint(1, 107);
                 
-        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         while(f){
             int share = sliceS~load_uint(32);
             cell body = bodyHead
