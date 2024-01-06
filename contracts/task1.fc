@@ -3,47 +3,148 @@
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
 }
 
+() code() impure asm
+"""
+32 LDU
+c4 PUSH
+CTOS
+256 LDU
+32 LDU
+LDMSGADDR
+32 LDU
+
+s6 PUSH
+2649817719 PUSHINT
+EQUAL
+// op in_msg pubkey time receiver seqno {}
+IFJMP:<{
+    s5 PUSH
+    64 LDU
+    LDREF
+
+    // op in_msg pubkey time receiver seqno {} qid ref sign
+    SWAP
+    DUP 
+    HASHCU
+    SWAP
+    CTOS
+    32 LDU
+    32 LDU
+
+    // op in_msg pubkey time receiver seqno {} qid sign hash lock seqno' {}
+    DROP
+    s6 s6 XCPU 
+    DEC
+    EQUAL
+    119 THROWIFNOT
+
+    // op in_msg pubkey time receiver seqno' {} qid sign hash lock 
+    s1 s2 s8 PUSH3
+    120 THROWIFNOT
+
+    s7 s7 PUSH2
+    1 LESSINT
+    121 THROWIF
+
+    NOW
+    LESS
+    122 THROWIF
+    
+    s7 s0 PUSH2
+    NOW
+    ADD
+    GREATER
+    123 THROWIF
+
+    ACCEPT
+    
+    NOW 
+    ADD
+    s5 s6 PUSH2
+    s2 s10 PUSH2
+
+    // op in_msg pubkey time receiver seqno' {} qid sign hash lock+now seqno' receiver lock+now pubkey
+    NEWC
+    256 STU
+    32 STU
+    STSLICER
+    32 STU
+    ENDC
+    c4 POP
+
+    14 BLKDROP
+}>
+
+s6 PUSH
+3142312500 PUSHINT
+EQUAL
+IFJMP:<{
+    NOW
+    s3 PUSH
+    LESS
+    124 THROWIF
+    ACCEPT
+
+    0 PUSHINT
+    s2 PUSH
+    24 PUSHINT
+
+    NEWC
+    6 STU
+    STSLICER
+    111 STU
+    ENDC
+    7 PUSHPOW2
+    SENDRAWMSG
+
+    7 BLKDROP
+}>
+""";
+
 () recv_external(slice in_msg) impure {
-    int op = in_msg~load_uint(32);
-    var ds = get_data().begin_parse();
-    var (pubkey, time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32), ds~load_msg_addr(), ds~load_uint(32));
-    if(op == 0x9df10277){
-        var sign = in_msg.skip_bits(64);
-        var ref = sign~load_ref();
-        var ds = ref.begin_parse();
-        var (lock, seqno') = (ds~load_uint(32), ds~load_uint(32));
-
-        throw_unless(119, seqno' == seqno + 1);
-        throw_unless(120, check_signature(cell_hash(ref), sign, pubkey));
-        throw_if(121, lock <= 0);
-        throw_if(122, time < now());
-        throw_if(123, now() + lock < time);
-        accept_message();
-
-        set_data(
-            begin_cell()
-            .store_uint(pubkey, 256)
-            .store_uint(now() + lock, 32)
-            .store_slice(receiver)
-            .store_uint(seqno', 32)
-            .end_cell()
-        );
-        return ();
-    }
-
-    if(op == 0xbb4be234) {
-        throw_if(124, now() < time);
-        accept_message();
-
-        cell msg = begin_cell()
-            .store_uint(0x18, 6)
-            .store_slice(receiver)
-            .store_uint(0, 111)
-            .end_cell();
-        send_raw_message(msg, 128);
-        return ();
-    }
+    code();
 }
+;; {
+;;     int op = in_msg~load_uint(32);
+;;     var ds = get_data().begin_parse();
+;;     var (pubkey, time, receiver, seqno) = (ds~load_uint(256), ds~load_uint(32), ds~load_msg_addr(), ds~load_uint(32));
+;;     if(op == 0x9df10277){
+;;         var sign = in_msg.skip_bits(64);
+;;         var ref = sign~load_ref();
+;;         var ds = ref.begin_parse();
+;;         var (lock, seqno') = (ds~load_uint(32), ds~load_uint(32));
+
+;;         throw_unless(119, seqno' == seqno + 1);
+;;         throw_unless(120, check_signature(cell_hash(ref), sign, pubkey));
+;;         throw_if(121, lock <= 0);
+;;         throw_if(122, time < now());
+;;         throw_if(123, now() + lock < time);
+;;         accept_message();
+
+;;         set_data(
+;;             begin_cell()
+;;             .store_uint(pubkey, 256)
+;;             .store_uint(now() + lock, 32)
+;;             .store_slice(receiver)
+;;             .store_uint(seqno', 32)
+;;             .end_cell()
+;;         );
+;;         return ();
+;;     }
+
+;;     if(op == 0xbb4be234) {
+;;         throw_if(124, now() < time);
+;;         accept_message();
+
+;;         cell msg = begin_cell()
+;;             .store_uint(0x18, 6)
+;;             .store_slice(receiver)
+;;             .store_uint(0, 111)
+;;             .end_cell();
+;;         send_raw_message(msg, 128);
+;;         return ();
+;;     }
+;; }
 
 int get_seqno() method_id {
     var ds = get_data().begin_parse();

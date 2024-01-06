@@ -1,9 +1,17 @@
-import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
+import { Address, beginCell, Cell, Contract, contractAddress, ContractGetMethodResult, ContractProvider, Sender, SendMode, TupleItem } from 'ton-core';
 
-export type Task1Config = {};
+export type Task1Config = {
+    key: number;
+    receiver: Address;
+};
 
 export function task1ConfigToCell(config: Task1Config): Cell {
-    return beginCell().endCell();
+    return beginCell()
+        .storeUint(config.key, 256)
+        .storeUint(0, 32)
+        .storeAddress(config.receiver)
+        .storeUint(0, 32)
+    .endCell();
 }
 
 export class Task1 implements Contract {
@@ -25,5 +33,13 @@ export class Task1 implements Contract {
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell().endCell(),
         });
+    }
+
+    async sendMessage(provider: ContractProvider, body : Cell ) {
+        await provider.external(body);
+    }
+
+    async get(provider: ContractProvider, name: string, args : TupleItem[]) : Promise<ContractGetMethodResult> {
+        return await provider.get(name, args);
     }
 }
