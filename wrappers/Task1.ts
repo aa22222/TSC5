@@ -35,8 +35,12 @@ export class Task1 implements Contract {
         });
     }
 
-    async sendMessage(provider: ContractProvider, body : Cell ) {
-        await provider.external(body);
+    async sendMessage(provider: ContractProvider, via: Sender, value: bigint, body : Cell ) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body
+        });
     }
 
     async get(provider: ContractProvider, name: string, args : TupleItem[]) : Promise<ContractGetMethodResult> {

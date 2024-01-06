@@ -24,6 +24,7 @@
         "typescript": "^4.9.5"
     },
     "dependencies": {
+        "@noble/ed25519": "^2.0.0",
         "ton-contract-executor": "^0.8.2"
     }
 }
