@@ -39,18 +39,19 @@ describe('Task1', () => {
 
     it('should deploy', async () => {
         const sender = await blockchain.treasury("sender");
+   
         const re = await task1.sendMessage(sender.getSender(), toNano('0.02'),
             beginCell()
             .storeUint(2649817719, 32)
             .storeUint(0, 64)
             .storeRef(
                 beginCell()
-                .storeUint(100, 32)
+                .storeUint(200000000, 32)
                 .storeUint(1, 32)
                 .endCell()
             )
             .endCell()
         )
-        // console.log(re);
+        console.log(re);
     });
 });

@@ -8,7 +8,7 @@ export type Task1Config = {
 export function task1ConfigToCell(config: Task1Config): Cell {
     return beginCell()
         .storeUint(config.key, 256)
-        .storeUint(0, 32)
+        .storeUint(1714516314, 32)
         .storeAddress(config.receiver)
         .storeUint(0, 32)
     .endCell();
