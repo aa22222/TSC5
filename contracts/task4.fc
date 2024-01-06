@@ -20,9 +20,10 @@ const slice blank = ""s;
 
     (int si, int sj) = (0 ,0);
     (int ei, int ej) = (0, 0);
-    (int i, int j) = (0, 0);
+    int i = 0;
     repeat(n){
         tuple cur = maze.at(i);
+        int j = 0; 
         repeat(m){
             var c = cur.at(j);
             if(c == S){ si = i; sj = j; }
@@ -30,8 +31,7 @@ const slice blank = ""s;
 
             j += 1;
         }
-
-        i += 1; j = 0;
+        i += 1;
     }
     tuple paths = maze;
 
@@ -41,7 +41,7 @@ const slice blank = ""s;
     pq~udict_set(keySize, s, blank);
     repeat(1000){
         (int x, _, _) = pq~udict::delete_get_min(keySize);
-
+        int ox = x;
         int j = x~divmod(32);
         int i = x~divmod(32);
         int len = x~divmod(512);
@@ -60,29 +60,26 @@ const slice blank = ""s;
         int di = -1;
         repeat(3){
             int i' = i + di;
-            di += 1; 
             int dj = -1;
             if((i' >= 0) & (i' < n)){
                 repeat(3){
                     int j' = j + dj;
-                    dj += 1;
                     if ((j' >= 0) & (j' < m)){
                         if(paths.at(i').at(j') > 0){
-                            int bX' = bX - (maze.at(i').at(j') == X);
-                            int sup' = sup - (maze.at(i').at(j') == Q);
+                            int s = ox + 32 * di + dj + 1024;
 
-                            int s = bX';
-                            s = s * 512 + sup';
-                            s = s * 512 + len + 1;
-                            s = s * 32 + i';
-                            s = s * 32 + j';
-
+                            int cc = maze.at(i').at(j');
+                            if(cc == X) { s += 1 << 28; }
+                            elseif(cc == Q) { s += 1 << 19; }
+                            
                             pq~udict_set(keySize, s, blank);
                             paths~set(paths.at(i').set( - ((i << 10) + j), j'), i'); ;; paths[i'][j'] = i << 10 + j
                         }
                     }
+                    dj += 1;
                 }
             }
+            di += 1; 
         }
     }
     return dud();
