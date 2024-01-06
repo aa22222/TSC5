@@ -8,7 +8,8 @@ builder store_addr(builder b, int address) inline {
     return b.store_uint(1024, 11).store_uint(address, 256);
 }
 int sequal(slice s, slice s') asm "SDEQ";
-
+forall X -> (tuple, (X)) ~tpop(tuple t) asm "TPOP";
+int tlen(tuple t) asm "TLEN";
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
     if (msg.slice_bits() < 32) {
         return ();
@@ -58,26 +59,26 @@ int sequal(slice s, slice s') asm "SDEQ";
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
 
+        tuple to_send = empty_tuple();
         int total_share = 0;
         while(f){
             int share = sliceS~load_uint(32);
             total_share += share;
+            to_send~tpush(pair(user, share));
             (user, sliceS, f) = users.udict_get_next?(256, user);
         }
 
-        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         builder head = begin_cell()
                 .store_uint(0x18, 6);
 
-        while(f){
-            int share = sliceS~load_uint(32);
+        repeat(to_send.tlen()){
+            (int user, int share) = unpair(to_send~tpop());
             cell msg = head
                 .store_addr(user)
                 .store_coins(muldiv(share, msg_value, total_share))
                 .store_uint(0, 107)
                 .end_cell();
             send_raw_message(msg, 1);
-            (user, sliceS, f) = users.udict_get_next?(256, user);
         }
         return ();
     }
@@ -88,14 +89,15 @@ int sequal(slice s, slice s') asm "SDEQ";
         (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         throw_unless(122, f);
 
+        tuple to_send = empty_tuple();
         int total_share = 0;
         while(f){
             int share = sliceS~load_uint(32);
             total_share += share;
+            to_send~tpush(pair(user, share));
             (user, sliceS, f) = users.udict_get_next?(256, user);
         }
 
-        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
         builder bodyHead = begin_cell()
             .store_uint(0x0f8a7ea5, 32)
             .store_uint(qid, 64);
@@ -104,9 +106,9 @@ int sequal(slice s, slice s') asm "SDEQ";
             .store_slice(sender)
             .store_coins(20000000)
             .store_uint(1, 107);
-                
-        while(f){
-            int share = sliceS~load_uint(32);
+        
+        repeat(to_send.tlen()){
+            (int user, int share) = unpair(to_send~tpop());
             cell body = bodyHead
                 .store_coins(muldiv(share, amount, total_share))
                 .store_addr(user)
@@ -116,8 +118,6 @@ int sequal(slice s, slice s') asm "SDEQ";
 
             cell msg = msgHead.store_ref(body).end_cell();
             send_raw_message(msg, 0);
-            
-            (user, sliceS, f) = users.udict_get_next?(256, user);
         }
         return ();
     }
