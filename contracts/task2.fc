@@ -10,6 +10,22 @@ builder store_addr(builder b, int address) inline {
 int sequal(slice s, slice s') asm "SDEQ";
 forall X -> (tuple, (X)) ~tpop(tuple t) asm "TPOP";
 int tlen(tuple t) asm "TLEN";
+
+(tuple, int) get_transactions(cell users) {
+    (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
+    throw_unless(122, f);
+
+    tuple to_send = empty_tuple();
+    int total_share = 0;
+    while(f){
+        int share = sliceS~load_uint(32);
+        total_share += share;
+        to_send~tpush(pair(user, share));
+        (user, sliceS, f) = users.udict_get_next?(256, user);
+    }
+    return (to_send, total_share);
+}
+
 () recv_internal(int msg_value, cell in_msg_cell, slice msg) impure {
     if (msg.slice_bits() < 32) {
         return ();
@@ -28,6 +44,7 @@ int tlen(tuple t) asm "TLEN";
 
         msg~skip_bits(11 + 64);
         int addr = msg~load_uint(256);
+
         int share = msg~load_uint(32);
         users~udict_set(256, addr, begin_cell().store_uint(share, 32).end_cell().begin_parse());
 
@@ -44,6 +61,7 @@ int tlen(tuple t) asm "TLEN";
 
         msg~skip_bits(11 + 64);
         int addr = msg~load_uint(256);
+
         int f = users~udict_delete?(256, addr);
         throw_unless(121, f);
 
@@ -55,18 +73,8 @@ int tlen(tuple t) asm "TLEN";
         );
         return ();
     }
-    if(op == 0x068530b3){
-        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
-        throw_unless(122, f);
-
-        tuple to_send = empty_tuple();
-        int total_share = 0;
-        while(f){
-            int share = sliceS~load_uint(32);
-            total_share += share;
-            to_send~tpush(pair(user, share));
-            (user, sliceS, f) = users.udict_get_next?(256, user);
-        }
+    if(op == 0x068530b3){        
+        (tuple to_send, int total_share) = get_transactions(users);
 
         builder head = begin_cell()
                 .store_uint(0x18, 6);
@@ -86,17 +94,7 @@ int tlen(tuple t) asm "TLEN";
         int qid = msg~load_uint(64);
         int amount = msg~load_coins();
 
-        (int user, slice sliceS, int f) = users.udict_get_next?(256, 0);
-        throw_unless(122, f);
-
-        tuple to_send = empty_tuple();
-        int total_share = 0;
-        while(f){
-            int share = sliceS~load_uint(32);
-            total_share += share;
-            to_send~tpush(pair(user, share));
-            (user, sliceS, f) = users.udict_get_next?(256, user);
-        }
+        (tuple to_send, int total_share) = get_transactions(users);
 
         builder bodyHead = begin_cell()
             .store_uint(0x0f8a7ea5, 32)
