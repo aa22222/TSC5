@@ -23,6 +23,7 @@ describe('Task1', () => {
 
         task1 = blockchain.openContract(Task1.createFromConfig({
             key : 1, 
+            time: 1714516314,
             receiver: receiver.address
         }, code));
 
@@ -39,19 +40,59 @@ describe('Task1', () => {
 
     it('should deploy', async () => {
         const sender = await blockchain.treasury("sender");
-   
-        const re = await task1.sendMessage(sender.getSender(), toNano('0.02'),
+        let re = await task1.sendMessage(sender.getSender(), toNano('0.02'),
             beginCell()
             .storeUint(2649817719, 32)
             .storeUint(0, 64)
             .storeRef(
                 beginCell()
                 .storeUint(200000000, 32)
+                .storeUint(2, 32)
+                .endCell()
+            )
+            .endCell()
+        )
+        expect(re.transactions).toHaveTransaction({
+            from: sender.address,
+            to: task1.address,
+            exitCode: 119
+        })
+
+        re = await task1.sendMessage(sender.getSender(), toNano('0.02'),
+            beginCell()
+            .storeUint(2649817719, 32)
+            .storeUint(0, 64)
+            .storeRef(
+                beginCell()
+                .storeUint(0&200000000, 32)
                 .storeUint(1, 32)
                 .endCell()
             )
             .endCell()
         )
-        console.log(re);
+        expect(re.transactions).toHaveTransaction({
+            from: sender.address,
+            to: task1.address,
+            exitCode: 121
+        })
+
+        re = await task1.sendMessage(sender.getSender(), toNano('0.02'),
+            beginCell()
+            .storeUint(2649817719, 32)
+            .storeUint(0, 64)
+            .storeRef(
+                beginCell()
+                .storeUint(200, 32)
+                .storeUint(1, 32)
+                .endCell()
+            )
+            .endCell()
+        )
+        expect(re.transactions).toHaveTransaction({
+            from: sender.address,
+            to: task1.address,
+            exitCode: 123
+        })
+
     });
 });

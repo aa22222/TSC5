@@ -70,38 +70,34 @@ IFJMP:<{
     11 BLKDROP
     
 }>
+s6 PUSH
+3142312500 PUSHINT
+EQUAL
+IFJMP:<{
+    DUMPSTK
+    s3 PUSH
+    NOW
+    GREATER
+    124 THROWIF
+    ACCEPT
+
+    0 PUSHINT
+    s3 PUSH
+    24 PUSHINT
+
+    NEWC
+    6 STU
+    STSLICE
+    111 STU
+    ENDC
+    7 PUSHPOW2
+    SENDRAWMSG
+
+    7 BLKDROP
+}>
+7 BLKDROP
 """;
-;; s6 PUSH
-;; 3142312500 PUSHINT
-;; EQUAL
-;; IFJMP:<{
-;;     s3 PUSH
-;;     NOW
-;;     GREATER
-;;     124 THROWIF
-;;     ACCEPT
-
-;;     0 PUSHINT
-;;     s2 PUSH
-;;     24 PUSHINT
-
-;;     NEWC
-;;     6 STU
-;;     STSLICE
-;;     111 STU
-;;     ENDC
-;;     7 PUSHPOW2
-;;     SENDRAWMSG
-
-;;     7 BLKDROP
-;; }>
-;; """;
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
-    if(in_msg_body.slice_bits() < 32){
-        return ();
-    }
-    ~dump(now());
-    code(in_msg_body);
 }
 
 () recv_external(slice in_msg) impure {
