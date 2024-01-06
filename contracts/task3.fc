@@ -55,7 +55,7 @@ int version() method_id {
                 set_c3(update_code.begin_parse().bless());
                 storage = migrate_one(storage);
             }
-        } until (version < xpVersion);
+        } until (version == xpVersion);
         set_c3(xpCode.begin_parse().bless());
         set_code(xpCode);
     }
