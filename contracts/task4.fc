@@ -44,14 +44,15 @@ const slice blank = ""s;
         int ox = x;
         int j = x~divmod(32);
         int i = x~divmod(32);
-        int len = x~divmod(512);
-        int sup = x~divmod(512);
-        int bX = x;
 
         if((i == ei) & (j == ej)){
+            int len = x~divmod(512);
+            int sup = x~divmod(512);
+            int bX = x;
+            (int li, int lj) = divmod( - paths.at(i).at(j), 1024);
             repeat(len - 1){
-                (i, j) = divmod( - paths.at(i).at(j), 1024);
-                maze~set(maze.at(i).set(val!, j), i);
+                maze~set(maze.at(li).set(val!, lj), li);
+                (li, lj) = divmod( - paths.at(li).at(lj), 1024);
             }
             return (bX, sup, len, maze);
         }

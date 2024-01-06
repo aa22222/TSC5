@@ -40,8 +40,7 @@ int version() method_id {
     int version = ds~load_uint(32);
     cell storage = ds~load_ref();
     
-    int update_needed = version < xpVersion;
-    if(update_needed){
+    if(version < xpVersion){
         int f = in_msg_body~load_uint(1);
         throw_unless(200, f); 
         cell xpCode = in_msg_body~load_ref();
